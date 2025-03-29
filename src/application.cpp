@@ -1,12 +1,13 @@
 #include "application.hpp"
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_video.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_init.h>
+#include <SDL3/SDL_iostream.h>
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_stdinc.h>
+#include <SDL3/SDL_surface.h>
 #include <SDL3/SDL_video.h>
+#include <SDL3_image/SDL_image.h>
 #include <chrono>
 #include <cmath>
 #include <thread>
@@ -84,6 +85,9 @@ void MandelbrotApplication::initializeSdl() {
     uint32_t windowFlags = SDL_WINDOW_RESIZABLE;
     window = SDL_CreateWindow("mandelbrot", displayWidth, displayHeight,
                               windowFlags);
+
+    auto icon = IMG_Load("./assets/icons/icon-mandel.png");
+    SDL_SetWindowIcon(window, icon);
 
     renderer = SDL_CreateRenderer(window, NULL);
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
