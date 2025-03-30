@@ -8,6 +8,7 @@
 #include <SDL3/SDL_surface.h>
 #include <SDL3/SDL_video.h>
 #include <SDL3_image/SDL_image.h>
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <thread>
@@ -28,7 +29,8 @@ MandelbrotApplication::MandelbrotApplication() {
 
     isRunning = false;
     frameCounter = 0;
-    timeCounter = 0.0;
+    animationTime = 0.0;
+    animationSpeed = 1.0;
     isFullscreen = false;
 }
 
@@ -36,7 +38,7 @@ void MandelbrotApplication::run() {
     auto start = now();
     auto frameStart = start;
 
-    std::chrono::duration<double> delta;
+    auto delta = start - frameStart;
 
     calculationThread =
         std::thread(&MandelbrotGrid::calculationLoop, &mandelbrotGrid);
@@ -45,16 +47,13 @@ void MandelbrotApplication::run() {
     draw();
 
     while (isRunning) {
-        frameStart = now();
-
         handleEvents();
-
-        timeCounter = (now() - start).count() * 0.000000001;
         draw();
 
-        delta = now() - frameStart;
-
         frameCounter += 1;
+        delta = now() - frameStart;
+        frameStart = frameStart + delta;
+        animationTime += delta.count() * 0.000000001;
     }
 
     mandelbrotGrid.stop();
@@ -181,6 +180,12 @@ void MandelbrotApplication::handleEvents() {
                 mandelbrotGrid.zoomOut(1.1);
                 initializeRenderTexture();
                 break;
+            case SDL_SCANCODE_LEFT:
+                animationSpeed = std::clamp(animationSpeed / 1.1, 0.05, 20.0);
+                break;
+            case SDL_SCANCODE_RIGHT:
+                animationSpeed = std::clamp(animationSpeed * 1.1, 0.05, 20.0);
+                break;
             case SDL_SCANCODE_W:
                 mandelbrotGrid.move(0.0, 0.1);
                 initializeRenderTexture();
@@ -265,7 +270,7 @@ void MandelbrotApplication::draw() {
     double histogramFactor;
     Shading::Colour colour;
 
-    colour = shading.shade(1.0, timeCounter);
+    colour = shading.shade(1.0, animationTime);
     SDL_SetRenderDrawColor(renderer, get<0>(colour), get<1>(colour),
                            get<2>(colour), 255);
     SDL_RenderClear(renderer);
@@ -286,7 +291,8 @@ void MandelbrotApplication::draw() {
                                       escapeIterationCount - 1.0) /
                                   static_cast<double>(escapeCount);
 
-                colour = shading.shade(histogramFactor, timeCounter);
+                colour = shading.shade(histogramFactor,
+                                       animationTime * animationSpeed);
 
                 texturePixels[y * texturePitch + x * 4] =
                     static_cast<unsigned char>(get<2>(colour));
