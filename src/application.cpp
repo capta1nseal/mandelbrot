@@ -53,7 +53,7 @@ void MandelbrotApplication::run() {
         frameCounter += 1;
         delta = now() - frameStart;
         frameStart = frameStart + delta;
-        animationTime += delta.count() * 0.000000001;
+        animationTime += delta.count() * 0.000000001 * animationSpeed;
     }
 
     mandelbrotGrid.stop();
@@ -291,8 +291,7 @@ void MandelbrotApplication::draw() {
                                       escapeIterationCount - 1.0) /
                                   static_cast<double>(escapeCount);
 
-                colour = shading.shade(histogramFactor,
-                                       animationTime * animationSpeed);
+                colour = shading.shade(histogramFactor, animationTime);
 
                 texturePixels[y * texturePitch + x * 4] =
                     static_cast<unsigned char>(get<2>(colour));
