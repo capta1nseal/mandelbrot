@@ -18,11 +18,11 @@ Solver::Solver() {
     m_width = 1;
     m_height = 1;
     aspectRatio = static_cast<double>(m_width) / static_cast<double>(m_height);
-    m_viewCenter.set(-0.5, 0.0);
+    m_viewCenter = {-0.5, 0.0};
     m_viewScale = 1.0;
 
     m_isJulia = false;
-    m_juliaCenter.set(m_viewCenter);
+    m_juliaCenter = m_viewCenter;
 }
 
 void Solver::initializeGrid(int width, int height, double viewCenterReal,
@@ -30,7 +30,7 @@ void Solver::initializeGrid(int width, int height, double viewCenterReal,
     {
         std::lock_guard<std::mutex> lock(calculationMutex);
 
-        m_viewCenter.set(viewCenterReal, viewCenterImag);
+        m_viewCenter = {viewCenterReal, viewCenterImag};
         m_viewScale = viewScale;
     }
 
@@ -151,7 +151,7 @@ void Solver::zoomOut(double factor) {
 
 void Solver::zoomOnPixel(int x, int y, double factor) {
     std::lock_guard<std::mutex> lock(calculationMutex);
-    m_viewCenter.set(mapToComplex(x, y));
+    m_viewCenter = mapToComplex(x, y);
     m_viewScale *= factor;
     resetGrid();
     printLocation();
@@ -159,7 +159,7 @@ void Solver::zoomOnPixel(int x, int y, double factor) {
 
 void Solver::move(double real, double imag) {
     std::lock_guard<std::mutex> lock(calculationMutex);
-    m_viewCenter.add(Complex(real / m_viewScale, imag / m_viewScale));
+    m_viewCenter += Complex(real / m_viewScale, imag / m_viewScale);
     resetGrid();
     printLocation();
 }
