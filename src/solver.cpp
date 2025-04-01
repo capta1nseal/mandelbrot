@@ -80,8 +80,10 @@ void Solver::toggleJulia() {
 
     if (m_isJulia) { // Switch to mandelbrot set.
         m_viewCenter = m_juliaCenter;
+        std::cout << "Switching to mandelbrot set.\n";
     } else { // Switch to julia set.
         m_juliaCenter = m_viewCenter;
+        std::cout << "Switching to julia set.\n";
     }
     m_isJulia = !m_isJulia;
 
