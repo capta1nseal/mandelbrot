@@ -6,8 +6,8 @@
 
 #include <SDL3/SDL.h>
 
-#include "grid.hpp"
 #include "shading.hpp"
+#include "solver.hpp"
 
 std::chrono::_V2::steady_clock::time_point now();
 
@@ -39,7 +39,7 @@ private:
 
     SDL_FPoint mousePosition;
 
-    MandelbrotGrid mandelbrotGrid;
+    Solver mandelbrotGrid;
     std::thread calculationThread;
 
     Shading shading;

@@ -1,5 +1,5 @@
-#ifndef _MANDELBROTGRID
-#define _MANDELBROTGRID
+#ifndef _MANDELBROTSOLVER
+#define _MANDELBROTSOLVER
 
 #include <mutex>
 #include <vector>
@@ -8,9 +8,9 @@
 #include "workqueue.hpp"
 
 // Wrapper for data and number crunching for the fractal solver.
-class MandelbrotGrid {
+class Solver {
 public:
-    MandelbrotGrid();
+    Solver();
 
     void initializeGrid(int width, int height, double viewCenterReal,
                         double viewCenterImag, double viewScale);
@@ -59,6 +59,7 @@ private:
     double m_viewScale;
 
     bool m_isJulia;
+    Complex m_juliaCenter;
 
     bool isRunning;
     WorkQueue workQueue;

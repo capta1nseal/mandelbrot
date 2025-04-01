@@ -15,8 +15,8 @@
 
 #include <SDL3/SDL.h>
 
-#include "grid.hpp"
 #include "shading.hpp"
+#include "solver.hpp"
 
 std::chrono::_V2::steady_clock::time_point now() {
     return std::chrono::steady_clock::now();
@@ -40,8 +40,7 @@ void MandelbrotApplication::run() {
 
     auto delta = start - frameStart;
 
-    calculationThread =
-        std::thread(&MandelbrotGrid::calculationLoop, &mandelbrotGrid);
+    calculationThread = std::thread(&Solver::calculationLoop, &mandelbrotGrid);
 
     isRunning = true;
     draw();

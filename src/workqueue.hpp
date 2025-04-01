@@ -1,5 +1,5 @@
-#ifndef _MANDELBROTWORKQUEUE_
-#define _MANDELBROTWORKQUEUE_
+#ifndef _MANDELBROTWORKQUEUE
+#define _MANDELBROTWORKQUEUE
 
 #include <atomic>
 #include <mutex>
