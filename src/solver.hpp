@@ -35,7 +35,7 @@ public:
     void zoomIn(double factor);
     void zoomOut(double factor);
 
-    void zoomOnPixel(int x, int y);
+    void zoomOnPixel(int x, int y, double factor);
 
     void move(double real, double imag);
 

@@ -39,8 +39,8 @@ private:
 
     SDL_FPoint mousePosition;
 
-    Solver mandelbrotGrid;
-    std::thread calculationThread;
+    Solver solver;
+    std::jthread solverThread;
 
     Shading shading;
 

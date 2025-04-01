@@ -78,12 +78,12 @@ void Solver::resetGrid() {
 void Solver::toggleJulia() {
     std::lock_guard<std::mutex> lock(calculationMutex);
 
-    m_isJulia = !m_isJulia;
-    if (m_isJulia) {
-        m_juliaCenter = m_viewCenter;
-    } else {
+    if (m_isJulia) { // Switch to mandelbrot set.
         m_viewCenter = m_juliaCenter;
+    } else { // Switch to julia set.
+        m_juliaCenter = m_viewCenter;
     }
+    m_isJulia = !m_isJulia;
 
     resetGrid();
 }
@@ -149,10 +149,10 @@ void Solver::zoomOut(double factor) {
     printLocation();
 }
 
-void Solver::zoomOnPixel(int x, int y) {
+void Solver::zoomOnPixel(int x, int y, double factor) {
     std::lock_guard<std::mutex> lock(calculationMutex);
     m_viewCenter.set(mapToComplex(x, y));
-    m_viewScale *= 2;
+    m_viewScale *= factor;
     resetGrid();
     printLocation();
 }

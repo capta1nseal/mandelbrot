@@ -40,7 +40,7 @@ void MandelbrotApplication::run() {
 
     auto delta = start - frameStart;
 
-    calculationThread = std::thread(&Solver::calculationLoop, &mandelbrotGrid);
+    solverThread = std::jthread(&Solver::calculationLoop, &solver);
 
     isRunning = true;
     draw();
@@ -55,9 +55,7 @@ void MandelbrotApplication::run() {
         animationTime += delta.count() * 0.000000001 * animationSpeed;
     }
 
-    mandelbrotGrid.stop();
-
-    calculationThread.join();
+    solver.stop();
 
     destroySdl();
 }
@@ -100,7 +98,7 @@ void MandelbrotApplication::destroySdl() {
 }
 
 void MandelbrotApplication::initializeGrid() {
-    mandelbrotGrid.initializeGrid(displayWidth, displayHeight, -0.5, 0.0, 1.0);
+    solver.initializeGrid(displayWidth, displayHeight, -0.5, 0.0, 1.0);
 
     // nice spiral
     // mandelbrotGrid.initializeGrid(displayWidth, displayHeight, -0.190564,
@@ -154,7 +152,7 @@ void MandelbrotApplication::handleEvents() {
             displayWidth = event.window.data1;
             displayHeight = event.window.data2;
 
-            mandelbrotGrid.resizeGrid(displayWidth, displayHeight);
+            solver.resizeGrid(displayWidth, displayHeight);
 
             initializeRenderTexture();
             break;
@@ -172,15 +170,15 @@ void MandelbrotApplication::handleEvents() {
                 isFullscreen = !isFullscreen;
                 break;
             case SDL_SCANCODE_J:
-                mandelbrotGrid.toggleJulia();
+                solver.toggleJulia();
                 initializeRenderTexture();
                 break;
             case SDL_SCANCODE_UP:
-                mandelbrotGrid.zoomIn(1.1);
+                solver.zoomIn(1.1);
                 initializeRenderTexture();
                 break;
             case SDL_SCANCODE_DOWN:
-                mandelbrotGrid.zoomOut(1.1);
+                solver.zoomOut(1.1);
                 initializeRenderTexture();
                 break;
             case SDL_SCANCODE_LEFT:
@@ -190,19 +188,19 @@ void MandelbrotApplication::handleEvents() {
                 animationSpeed = std::clamp(animationSpeed * 1.1, 0.05, 20.0);
                 break;
             case SDL_SCANCODE_W:
-                mandelbrotGrid.move(0.0, 0.1);
+                solver.move(0.0, 0.1);
                 initializeRenderTexture();
                 break;
             case SDL_SCANCODE_S:
-                mandelbrotGrid.move(0.0, -0.1);
+                solver.move(0.0, -0.1);
                 initializeRenderTexture();
                 break;
             case SDL_SCANCODE_A:
-                mandelbrotGrid.move(-0.1, 0.0);
+                solver.move(-0.1, 0.0);
                 initializeRenderTexture();
                 break;
             case SDL_SCANCODE_D:
-                mandelbrotGrid.move(0.1, 0.0);
+                solver.move(0.1, 0.0);
                 initializeRenderTexture();
                 break;
             case SDL_SCANCODE_1:
@@ -223,11 +221,14 @@ void MandelbrotApplication::handleEvents() {
             break;
         case SDL_EVENT_MOUSE_BUTTON_DOWN:
             switch (event.button.button) {
-            case SDL_BUTTON_LEFT: {
-                mandelbrotGrid.zoomOnPixel(event.button.x, event.button.y);
+            case SDL_BUTTON_LEFT:
+                solver.zoomOnPixel(event.button.x, event.button.y, 2.0);
                 initializeRenderTexture();
                 break;
-            }
+            case SDL_BUTTON_RIGHT:
+                solver.zoomOut(2.0);
+                initializeRenderTexture();
+                break;
             default:
                 break;
             }
@@ -245,9 +246,8 @@ void MandelbrotApplication::draw() {
     std::vector<int> iterationGrid;
     std::vector<int> escapeIterationCounterSums;
 
-    mandelbrotGrid.getFrameData(iterationCount, escapeCount,
-                                magnitudeSquaredGrid, iterationGrid,
-                                escapeIterationCounterSums);
+    solver.getFrameData(iterationCount, escapeCount, magnitudeSquaredGrid,
+                        iterationGrid, escapeIterationCounterSums);
 
     auto smoothEscapeIterationCounterSum =
         [escapeIterationCounterSums](
