@@ -6,6 +6,7 @@
 #include <iostream>
 #include <mutex>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include "complex.hpp"
@@ -23,7 +24,7 @@ Solver::Solver() {
     m_viewScale = 1.0;
 
     m_currentFractal = true;
-    m_juliaConstant = m_viewCenter;
+    m_fractalConstant = {0.0, 0.0};
 }
 
 void Solver::initializeGrid(int width, int height, double viewCenterReal,
@@ -54,7 +55,7 @@ void Solver::resetGrid() {
 
     m_grid.resize(m_width, m_height);
     if (m_currentFractal) {
-        m_grid.assign(m_width, m_height, Complex(0.0, 0.0));
+        m_grid.assign(m_width, m_height, m_fractalConstant);
     } else {
         for (int y = 0; y < m_height; y++) {
             for (int x = 0; x < m_width; x++) {
@@ -80,12 +81,11 @@ void Solver::toggleJulia() {
     std::lock_guard<std::mutex> lock(calculationMutex);
 
     if (m_currentFractal) { // Switch to julia set.
-        m_juliaConstant = m_viewCenter;
         std::cout << "Switching to julia set.\n";
     } else { // Switch to mandelbrot set.
-        m_viewCenter = m_juliaConstant;
         std::cout << "Switching to mandelbrot set.\n";
     }
+    std::swap(m_viewCenter, m_fractalConstant);
     m_currentFractal = !m_currentFractal;
 
     resetGrid();
@@ -202,7 +202,7 @@ void Solver::rowIterator() {
                 if (m_currentFractal) { // mandelbrot set.
                     m_grid[x, y].squareAdd(mapToComplex(x, y));
                 } else { // julia set.
-                    m_grid[x, y].squareAdd(m_juliaConstant);
+                    m_grid[x, y].squareAdd(m_fractalConstant);
                 }
                 m_magnitudeSquaredGrid[x, y] = m_grid[x, y].magnitudeSquared();
                 m_iterationGrid[x, y]++;

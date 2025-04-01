@@ -58,8 +58,9 @@ private:
     Complex m_viewCenter;
     double m_viewScale;
 
+    // true is mandelbrot, false is julia.
     bool m_currentFractal;
-    Complex m_juliaConstant;
+    Complex m_fractalConstant;
 
     bool isRunning;
     WorkQueue workQueue;
