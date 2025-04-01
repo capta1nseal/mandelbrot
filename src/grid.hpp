@@ -19,6 +19,8 @@ public:
 
     void resetGrid();
 
+    void toggleJulia();
+
     void calculationLoop();
 
     void stop();
@@ -55,6 +57,8 @@ private:
     double aspectRatio;
     Complex m_viewCenter;
     double m_viewScale;
+
+    bool m_isJulia;
 
     bool isRunning;
     WorkQueue workQueue;

@@ -1,5 +1,6 @@
 # mandelbrot
 Just a little hobby project in fractal rendering.
+Features a full mandelbrot set and julia set renderer with some nice graphics.
 Rendered on the CPU. A long-term goal would be to move compute to the GPU.
 
 ## Installation
@@ -11,13 +12,15 @@ Rendered on the CPU. A long-term goal would be to move compute to the GPU.
 - Window can be resized, toggle fullscreen with F11.
 - Move around with WASD keys.
 - Zoom in/out with up/down arrow keys.
+- Toggle julia set mode with J key.
 - Increase/decrease animation speed with right/left arrow keys.
 - Zoom in and centre on click by left-clicking.
     - Resizing or zooming may result in needing to wait a moment until enough iterations are recalculated to be able to see anything.
 - Keys 1-4 select a shading function. works instantly and doesn't need any recalculations.
 
 #### Status
-- Draws mandelbrot set.
+- Draws the mandelbrot set.
+- Can be toggled to the correspending julia set by pressing a key.
 - Configurable shading with smooth colouring.
 - Navigation with keyboard and mouse.
 - A bit slow since it's rendered on CPU.

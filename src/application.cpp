@@ -172,6 +172,10 @@ void MandelbrotApplication::handleEvents() {
                 }
                 isFullscreen = !isFullscreen;
                 break;
+            case SDL_SCANCODE_J:
+                mandelbrotGrid.toggleJulia();
+                initializeRenderTexture();
+                break;
             case SDL_SCANCODE_UP:
                 mandelbrotGrid.zoomIn(1.1);
                 initializeRenderTexture();

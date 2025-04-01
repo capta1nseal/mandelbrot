@@ -20,6 +20,8 @@ MandelbrotGrid::MandelbrotGrid() {
     aspectRatio = static_cast<double>(m_width) / static_cast<double>(m_height);
     m_viewCenter.set(0.0, 0.0);
     m_viewScale = 1.0;
+
+    m_isJulia = false;
 }
 
 void MandelbrotGrid::initializeGrid(int width, int height,
@@ -50,7 +52,15 @@ void MandelbrotGrid::resetGrid() {
     workQueue.abortIteration();
 
     m_grid.resize(m_width * m_height);
-    m_grid.assign(m_width * m_height, Complex(0.0, 0.0));
+    if (m_isJulia) {
+        for (int y = 0; y < m_height; y++) {
+            for (int x = 0; x < m_width; x++) {
+                m_grid[y * m_width + x] = mapToComplex(x, y);
+            }
+        }
+    } else {
+        m_grid.assign(m_width * m_height, Complex(0.0, 0.0));
+    }
 
     m_iterationGrid.resize(m_width * m_height);
     m_iterationGrid.assign(m_width * m_height, 0);
@@ -63,6 +73,14 @@ void MandelbrotGrid::resetGrid() {
     escapeIterationCounter.assign(m_iterationMaximum, 0);
 
     m_iterationCount = 0;
+}
+
+void MandelbrotGrid::toggleJulia() {
+    std::lock_guard<std::mutex> lock(calculationMutex);
+
+    m_isJulia = !m_isJulia;
+
+    resetGrid();
 }
 
 void MandelbrotGrid::calculationLoop() {
@@ -182,7 +200,11 @@ void MandelbrotGrid::rowIterator() {
             }
             if (m_magnitudeSquaredGrid[y * m_width + x] <=
                 m_escapeRadius * m_escapeRadius) {
-                m_grid[y * m_width + x].squareAdd(mapToComplex(x, y));
+                if (m_isJulia) {
+                    m_grid[y * m_width + x].squareAdd(m_viewCenter);
+                } else {
+                    m_grid[y * m_width + x].squareAdd(mapToComplex(x, y));
+                }
                 m_magnitudeSquaredGrid[y * m_width + x] =
                     m_grid[y * m_width + x].magnitudeSquared();
                 incrementIterationGrid(x, y);
