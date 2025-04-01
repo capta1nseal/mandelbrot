@@ -165,33 +165,32 @@ Complex MandelbrotGrid::mapToComplex(double x, double y) {
 }
 
 void MandelbrotGrid::setValueAt(int x, int y, Complex value) {
-    m_grid[x * m_height + y] = value;
+    m_grid[y * m_width + x] = value;
 }
 
 void MandelbrotGrid::incrementIterationGrid(int x, int y) {
-    m_iterationGrid[x * m_height + y] += 1;
+    m_iterationGrid[y * m_width + x] += 1;
 }
 
 void MandelbrotGrid::rowIterator() {
     auto [y, width] = workQueue.getTask();
 
     while (y != -1) {
-        // TODO use workQueue's atomic bool to abort before further reads.
         for (int x = 0; x < m_width; x++) {
             if (workQueue.isAborted()) [[unlikely]] {
                 break;
             }
-            if (m_magnitudeSquaredGrid[x * m_height + y] <=
+            if (m_magnitudeSquaredGrid[y * m_width + x] <=
                 m_escapeRadius * m_escapeRadius) {
-                m_grid[x * m_height + y].squareAdd(mapToComplex(x, y));
-                m_magnitudeSquaredGrid[x * m_height + y] =
-                    m_grid[x * m_height + y].magnitudeSquared();
+                m_grid[y * m_width + x].squareAdd(mapToComplex(x, y));
+                m_magnitudeSquaredGrid[y * m_width + x] =
+                    m_grid[y * m_width + x].magnitudeSquared();
                 incrementIterationGrid(x, y);
 
-                if (m_magnitudeSquaredGrid[x * m_height + y] >
+                if (m_magnitudeSquaredGrid[y * m_width + x] >
                     m_escapeRadius * m_escapeRadius) {
                     m_escapeCount++;
-                    escapeIterationCounter[m_iterationGrid[x * m_height + y] -
+                    escapeIterationCounter[m_iterationGrid[y * m_width + x] -
                                            1]++;
                 }
             }

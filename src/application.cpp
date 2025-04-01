@@ -278,13 +278,13 @@ void MandelbrotApplication::draw() {
     SDL_LockTexture(renderTexture, NULL,
                     reinterpret_cast<void **>(&texturePixels), &texturePitch);
 
-    for (unsigned int x = 0; x < displayWidth; x++) {
-        for (unsigned int y = 0; y < displayHeight; y++) {
-            if (magnitudeSquaredGrid[x * displayHeight + y] > 2.0 * 2.0) {
+    for (unsigned int y = 0; y < displayHeight; y++) {
+        for (unsigned int x = 0; x < displayWidth; x++) {
+            if (magnitudeSquaredGrid[y * displayWidth + x] > 2.0 * 2.0) {
                 // calculate continuous number of iterations to escape
                 escapeIterationCount =
-                    (iterationGrid[x * displayHeight + y] -
-                     log2(log2(magnitudeSquaredGrid[x * displayHeight + y]))) +
+                    (iterationGrid[y * displayWidth + x] -
+                     log2(log2(magnitudeSquaredGrid[y * displayWidth + x]))) +
                     1;
                 // get Lerped summed histogram for continuous histogram shading
                 histogramFactor = smoothEscapeIterationCounterSum(
