@@ -58,8 +58,8 @@ private:
     Complex m_viewCenter;
     double m_viewScale;
 
-    bool m_isJulia;
-    Complex m_juliaCenter;
+    bool m_currentFractal;
+    Complex m_juliaConstant;
 
     bool isRunning;
     WorkQueue workQueue;

@@ -22,8 +22,8 @@ Solver::Solver() {
     m_viewCenter = {-0.5, 0.0};
     m_viewScale = 1.0;
 
-    m_isJulia = false;
-    m_juliaCenter = m_viewCenter;
+    m_currentFractal = true;
+    m_juliaConstant = m_viewCenter;
 }
 
 void Solver::initializeGrid(int width, int height, double viewCenterReal,
@@ -53,14 +53,14 @@ void Solver::resetGrid() {
     workQueue.abortIteration();
 
     m_grid.resize(m_width, m_height);
-    if (m_isJulia) {
+    if (m_currentFractal) {
+        m_grid.assign(m_width, m_height, Complex(0.0, 0.0));
+    } else {
         for (int y = 0; y < m_height; y++) {
             for (int x = 0; x < m_width; x++) {
                 m_grid[x, y] = mapToComplex(x, y);
             }
         }
-    } else {
-        m_grid.assign(m_width, m_height, Complex(0.0, 0.0));
     }
 
     m_iterationGrid.resize(m_width, m_height);
@@ -79,14 +79,14 @@ void Solver::resetGrid() {
 void Solver::toggleJulia() {
     std::lock_guard<std::mutex> lock(calculationMutex);
 
-    if (m_isJulia) { // Switch to mandelbrot set.
-        m_viewCenter = m_juliaCenter;
-        std::cout << "Switching to mandelbrot set.\n";
-    } else { // Switch to julia set.
-        m_juliaCenter = m_viewCenter;
+    if (m_currentFractal) { // Switch to julia set.
+        m_juliaConstant = m_viewCenter;
         std::cout << "Switching to julia set.\n";
+    } else { // Switch to mandelbrot set.
+        m_viewCenter = m_juliaConstant;
+        std::cout << "Switching to mandelbrot set.\n";
     }
-    m_isJulia = !m_isJulia;
+    m_currentFractal = !m_currentFractal;
 
     resetGrid();
 }
@@ -199,10 +199,10 @@ void Solver::rowIterator() {
             }
             if (m_magnitudeSquaredGrid[x, y] <=
                 m_escapeRadius * m_escapeRadius) {
-                if (m_isJulia) {
-                    m_grid[x, y].squareAdd(m_juliaCenter);
-                } else {
+                if (m_currentFractal) { // mandelbrot set.
                     m_grid[x, y].squareAdd(mapToComplex(x, y));
+                } else { // julia set.
+                    m_grid[x, y].squareAdd(m_juliaConstant);
                 }
                 m_magnitudeSquaredGrid[x, y] = m_grid[x, y].magnitudeSquared();
                 m_iterationGrid[x, y]++;
