@@ -18,7 +18,7 @@ MandelbrotGrid::MandelbrotGrid() {
     m_width = 1;
     m_height = 1;
     aspectRatio = static_cast<double>(m_width) / static_cast<double>(m_height);
-    m_viewCenter.set(0.0, 0.0);
+    m_viewCenter.set(-0.5, 0.0);
     m_viewScale = 1.0;
 
     m_isJulia = false;

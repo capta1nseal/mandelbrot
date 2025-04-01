@@ -101,7 +101,7 @@ void MandelbrotApplication::destroySdl() {
 }
 
 void MandelbrotApplication::initializeGrid() {
-    mandelbrotGrid.initializeGrid(displayWidth, displayHeight, 0.0, 0.0, 1.0);
+    mandelbrotGrid.initializeGrid(displayWidth, displayHeight, -0.5, 0.0, 1.0);
 
     // nice spiral
     // mandelbrotGrid.initializeGrid(displayWidth, displayHeight, -0.190564,
