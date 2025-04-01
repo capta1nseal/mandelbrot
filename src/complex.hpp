@@ -9,26 +9,26 @@ struct Complex {
     Complex();
     Complex(double initReal, double initImag = 0.0);
 
-    Complex &operator+=(const Complex &rhs);
-    friend Complex operator+(Complex lhs, const Complex &rhs) {
+    Complex& operator+=(const Complex& rhs);
+    friend Complex operator+(Complex lhs, const Complex& rhs) {
         lhs += rhs;
         return lhs;
     }
 
-    Complex &operator-=(const Complex &rhs);
-    friend Complex operator-(Complex lhs, const Complex &rhs) {
+    Complex& operator-=(const Complex& rhs);
+    friend Complex operator-(Complex lhs, const Complex& rhs) {
         lhs -= rhs;
         return lhs;
     }
 
-    Complex &operator*=(const Complex &rhs);
-    friend Complex operator*(Complex lhs, const Complex &rhs) {
+    Complex& operator*=(const Complex& rhs);
+    friend Complex operator*(Complex lhs, const Complex& rhs) {
         lhs *= rhs;
         return lhs;
     }
 
-    Complex &operator/=(const Complex &rhs);
-    friend Complex operator/(Complex lhs, const Complex &rhs) {
+    Complex& operator/=(const Complex& rhs);
+    friend Complex operator/(Complex lhs, const Complex& rhs) {
         lhs /= rhs;
         return rhs;
     }

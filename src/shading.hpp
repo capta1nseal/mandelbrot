@@ -36,7 +36,7 @@ private:
 
     Colour hsvToRgb(HsvColour hsvColour) const;
 
-    Colour colourRamp(const std::vector<std::pair<double, HsvColour>> &hsvPath,
+    Colour colourRamp(const std::vector<std::pair<double, HsvColour>>& hsvPath,
                       double factor) const;
 
     double lerp(double min, double max, double normalizedFactor) const;

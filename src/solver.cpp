@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "complex.hpp"
+#include "grid2d.hpp"
 #include "workqueue.hpp"
 
 Solver::Solver() {
@@ -51,22 +52,22 @@ void Solver::resizeGrid(int width, int height) {
 void Solver::resetGrid() {
     workQueue.abortIteration();
 
-    m_grid.resize(m_width * m_height);
+    m_grid.resize(m_width, m_height);
     if (m_isJulia) {
         for (int y = 0; y < m_height; y++) {
             for (int x = 0; x < m_width; x++) {
-                m_grid[y * m_width + x] = mapToComplex(x, y);
+                m_grid[x, y] = mapToComplex(x, y);
             }
         }
     } else {
-        m_grid.assign(m_width * m_height, Complex(0.0, 0.0));
+        m_grid.assign(m_width, m_height, Complex(0.0, 0.0));
     }
 
-    m_iterationGrid.resize(m_width * m_height);
-    m_iterationGrid.assign(m_width * m_height, 0);
+    m_iterationGrid.resize(m_width, m_height);
+    m_iterationGrid.assign(m_width, m_height, 0);
 
-    m_magnitudeSquaredGrid.resize(m_width * m_height);
-    m_magnitudeSquaredGrid.assign(m_width * m_height, 0.0);
+    m_magnitudeSquaredGrid.resize(m_width, m_height);
+    m_magnitudeSquaredGrid.assign(m_width, m_height, 0.0);
 
     m_escapeCount = 0;
     escapeIterationCounter.resize(m_iterationMaximum);
@@ -101,10 +102,10 @@ void Solver::stop() { isRunning = false; }
 
 int Solver::getMaxIterationCount() { return m_iterationMaximum; }
 
-void Solver::getFrameData(int &iterationCount, int &escapeCount,
-                          std::vector<double> &magnitudeSquaredGrid,
-                          std::vector<int> &iterationGrid,
-                          std::vector<int> &escapeIterationCounterSums) {
+void Solver::getFrameData(int& iterationCount, int& escapeCount,
+                          Grid2d<double>& magnitudeSquaredGrid,
+                          Grid2d<int>& iterationGrid,
+                          std::vector<int>& escapeIterationCounterSums) {
 
     while (m_iterationCount == 0) [[unlikely]] {
     }
@@ -116,7 +117,6 @@ void Solver::getFrameData(int &iterationCount, int &escapeCount,
         std::lock_guard<std::mutex> lock(calculationMutex);
 
         if (!workQueue.isAborted()) [[likely]] {
-
             iterationCount = m_iterationCount;
 
             escapeCount = m_escapeCount;
@@ -178,8 +178,8 @@ Complex Solver::mapToComplex(double x, double y) {
     double realRange = (2.0 * m_escapeRadius) / m_viewScale;
     double imaginaryRange = realRange * (static_cast<double>(m_height) /
                                          static_cast<double>(m_width));
-    x *= realRange / static_cast<double>(m_width);
-    y *= imaginaryRange / static_cast<double>(m_height);
+    x *= realRange / m_width;
+    y *= imaginaryRange / m_height;
 
     x += m_viewCenter.real - (m_escapeRadius / m_viewScale);
     y += m_viewCenter.imag - (m_escapeRadius / (m_viewScale * aspectRatio));
@@ -187,14 +187,6 @@ Complex Solver::mapToComplex(double x, double y) {
     y = 2.0 * m_viewCenter.imag - y;
 
     return Complex(x, y);
-}
-
-void Solver::setValueAt(int x, int y, Complex value) {
-    m_grid[y * m_width + x] = value;
-}
-
-void Solver::incrementIterationGrid(int x, int y) {
-    m_iterationGrid[y * m_width + x] += 1;
 }
 
 void Solver::rowIterator() {
@@ -205,22 +197,20 @@ void Solver::rowIterator() {
             if (workQueue.isAborted()) [[unlikely]] {
                 break;
             }
-            if (m_magnitudeSquaredGrid[y * m_width + x] <=
+            if (m_magnitudeSquaredGrid[x, y] <=
                 m_escapeRadius * m_escapeRadius) {
                 if (m_isJulia) {
-                    m_grid[y * m_width + x].squareAdd(m_juliaCenter);
+                    m_grid[x, y].squareAdd(m_juliaCenter);
                 } else {
-                    m_grid[y * m_width + x].squareAdd(mapToComplex(x, y));
+                    m_grid[x, y].squareAdd(mapToComplex(x, y));
                 }
-                m_magnitudeSquaredGrid[y * m_width + x] =
-                    m_grid[y * m_width + x].magnitudeSquared();
-                incrementIterationGrid(x, y);
+                m_magnitudeSquaredGrid[x, y] = m_grid[x, y].magnitudeSquared();
+                m_iterationGrid[x, y]++;
 
-                if (m_magnitudeSquaredGrid[y * m_width + x] >
+                if (m_magnitudeSquaredGrid[x, y] >
                     m_escapeRadius * m_escapeRadius) {
                     m_escapeCount++;
-                    escapeIterationCounter[m_iterationGrid[y * m_width + x] -
-                                           1]++;
+                    escapeIterationCounter[m_iterationGrid[x, y] - 1]++;
                 }
             }
         }

@@ -27,15 +27,15 @@ private:
     unsigned int displayWidth, displayHeight;
     bool isFullscreen;
 
-    SDL_Window *window;
-    SDL_Renderer *renderer;
+    SDL_Window* window;
+    SDL_Renderer* renderer;
 
-    SDL_Texture *renderTexture;
-    unsigned char *texturePixels;
+    SDL_Texture* renderTexture;
+    unsigned char* texturePixels;
     int texturePitch;
 
     SDL_Event event;
-    const bool *keyboardState;
+    const bool* keyboardState;
 
     SDL_FPoint mousePosition;
 

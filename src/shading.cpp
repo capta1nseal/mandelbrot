@@ -119,7 +119,7 @@ Shading::Colour Shading::hsvToRgb(HsvColour hsvColour) const {
 }
 
 Shading::Colour
-Shading::colourRamp(const std::vector<std::pair<double, HsvColour>> &hsvPath,
+Shading::colourRamp(const std::vector<std::pair<double, HsvColour>>& hsvPath,
                     double factor) const {
     // case where factor is less than first colour's factor.
     if (factor <= hsvPath[0].first) {

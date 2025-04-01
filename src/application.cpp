@@ -15,6 +15,7 @@
 
 #include <SDL3/SDL.h>
 
+#include "grid2d.hpp"
 #include "shading.hpp"
 #include "solver.hpp"
 
@@ -242,8 +243,8 @@ void MandelbrotApplication::handleEvents() {
 void MandelbrotApplication::draw() {
     int iterationCount;
     int escapeCount;
-    std::vector<double> magnitudeSquaredGrid;
-    std::vector<int> iterationGrid;
+    Grid2d<double> magnitudeSquaredGrid;
+    Grid2d<int> iterationGrid;
     std::vector<int> escapeIterationCounterSums;
 
     solver.getFrameData(iterationCount, escapeCount, magnitudeSquaredGrid,
@@ -279,15 +280,15 @@ void MandelbrotApplication::draw() {
     SDL_RenderClear(renderer);
 
     SDL_LockTexture(renderTexture, NULL,
-                    reinterpret_cast<void **>(&texturePixels), &texturePitch);
+                    reinterpret_cast<void**>(&texturePixels), &texturePitch);
 
-    for (unsigned int y = 0; y < displayHeight; y++) {
-        for (unsigned int x = 0; x < displayWidth; x++) {
-            if (magnitudeSquaredGrid[y * displayWidth + x] > 2.0 * 2.0) {
+    for (unsigned int y = 0; y < iterationGrid.height(); y++) {
+        for (unsigned int x = 0; x < iterationGrid.width(); x++) {
+            if (magnitudeSquaredGrid[x, y] > 2.0 * 2.0) {
                 // calculate continuous number of iterations to escape
                 escapeIterationCount =
-                    (iterationGrid[y * displayWidth + x] -
-                     log2(log2(magnitudeSquaredGrid[y * displayWidth + x]))) +
+                    (iterationGrid[x, y] -
+                     log2(log2(magnitudeSquaredGrid[x, y]))) +
                     1;
                 // get Lerped summed histogram for continuous histogram shading
                 histogramFactor = smoothEscapeIterationCounterSum(
