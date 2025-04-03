@@ -33,4 +33,4 @@ std::tuple<int, unsigned int> WorkQueue::getTask() {
 }
 
 void WorkQueue::abortIteration() { abort = true; }
-const std::atomic_bool &WorkQueue::isAborted() const { return abort; }
+const std::atomic_bool& WorkQueue::isAborted() const { return abort; }

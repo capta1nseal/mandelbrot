@@ -1,16 +1,17 @@
-#ifndef _MANDELBROTGRID
-#define _MANDELBROTGRID
+#ifndef _MANDELBROTSOLVER
+#define _MANDELBROTSOLVER
 
 #include <mutex>
 #include <vector>
 
 #include "complex.hpp"
+#include "grid2d.hpp"
 #include "workqueue.hpp"
 
 // Wrapper for data and number crunching for the fractal solver.
-class MandelbrotGrid {
+class Solver {
 public:
-    MandelbrotGrid();
+    Solver();
 
     void initializeGrid(int width, int height, double viewCenterReal,
                         double viewCenterImag, double viewScale);
@@ -19,31 +20,32 @@ public:
 
     void resetGrid();
 
+    void toggleJulia();
+
     void calculationLoop();
 
     void stop();
 
     int getMaxIterationCount();
 
-    void getFrameData(int &iterationCount, int &escapeCount,
-                      std::vector<double> &magnitudeGrid,
-                      std::vector<int> &iterationGrid,
-                      std::vector<int> &escapeIterationCounterSums);
+    void getFrameData(int& iterationCount, int& escapeCount,
+                      Grid2d<double>& magnitudeGrid, Grid2d<int>& iterationGrid,
+                      std::vector<int>& escapeIterationCounterSums);
 
     void zoomIn(double factor);
     void zoomOut(double factor);
 
-    void zoomOnPixel(int x, int y);
+    void zoomOnPixel(int x, int y, double factor);
 
     void move(double real, double imag);
 
     void printLocation();
 
 private:
-    std::vector<Complex> m_grid;
-    std::vector<int> m_iterationGrid;
+    Grid2d<Complex> m_grid;
+    Grid2d<int> m_iterationGrid;
 
-    std::vector<double> m_magnitudeSquaredGrid;
+    Grid2d<double> m_magnitudeSquaredGrid;
 
     std::vector<int> escapeIterationCounter;
 
@@ -56,15 +58,15 @@ private:
     Complex m_viewCenter;
     double m_viewScale;
 
+    // true is mandelbrot, false is julia.
+    bool m_currentFractal;
+    Complex m_fractalConstant;
+
     bool isRunning;
     WorkQueue workQueue;
     std::mutex calculationMutex;
 
     Complex mapToComplex(double x, double y);
-
-    void setValueAt(int x, int y, Complex value);
-
-    void incrementIterationGrid(int x, int y);
 
     // Iterates over one row of the grid, intended for use in multithreading.
     void rowIterator();

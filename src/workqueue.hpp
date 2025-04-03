@@ -1,10 +1,13 @@
-#ifndef _MANDELBROTWORKQUEUE_
-#define _MANDELBROTWORKQUEUE_
+#ifndef _MANDELBROTWORKQUEUE
+#define _MANDELBROTWORKQUEUE
 
 #include <atomic>
 #include <mutex>
 #include <tuple>
 
+// Distributes work for concurrent execution.
+// Doesn't actually store a queue of tasks, just iterates from zero up to
+// taskCount and any thread can fetch a task, which is done under mutex lock.
 class WorkQueue {
 public:
     WorkQueue();
@@ -23,7 +26,7 @@ public:
     // Abort current iteration.
     void abortIteration();
     // Check if current iteration is aborted.
-    const std::atomic_bool &isAborted() const;
+    const std::atomic_bool& isAborted() const;
 
 private:
     unsigned int nextTask;

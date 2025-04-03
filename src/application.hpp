@@ -6,8 +6,8 @@
 
 #include <SDL3/SDL.h>
 
-#include "grid.hpp"
 #include "shading.hpp"
+#include "solver.hpp"
 
 std::chrono::_V2::steady_clock::time_point now();
 
@@ -22,24 +22,25 @@ public:
 private:
     bool isRunning;
     int frameCounter;
-    double timeCounter;
+    double animationTime;
+    double animationSpeed;
     unsigned int displayWidth, displayHeight;
     bool isFullscreen;
 
-    SDL_Window *window;
-    SDL_Renderer *renderer;
+    SDL_Window* window;
+    SDL_Renderer* renderer;
 
-    SDL_Texture *renderTexture;
-    unsigned char *texturePixels;
+    SDL_Texture* renderTexture;
+    unsigned char* texturePixels;
     int texturePitch;
 
     SDL_Event event;
-    const bool *keyboardState;
+    const bool* keyboardState;
 
     SDL_FPoint mousePosition;
 
-    MandelbrotGrid mandelbrotGrid;
-    std::thread calculationThread;
+    Solver solver;
+    std::jthread solverThread;
 
     Shading shading;
 

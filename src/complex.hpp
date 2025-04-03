@@ -1,56 +1,42 @@
 #ifndef _MANDELBROTCOMPLEX
 #define _MANDELBROTCOMPLEX
 
-// Simple complex struct with probably too many functions.
+// Simple complex struct with useful functions for fractals.
 struct Complex {
     double real;
     double imag;
 
     Complex();
-    Complex(double initReal, double initImag);
+    Complex(double initReal, double initImag = 0.0);
 
-    void zero();
+    Complex& operator+=(const Complex& rhs);
+    friend Complex operator+(Complex lhs, const Complex& rhs) {
+        lhs += rhs;
+        return lhs;
+    }
 
-    void set(double initReal, double initImag);
-    void set(Complex other);
-    void set(Complex *other);
+    Complex& operator-=(const Complex& rhs);
+    friend Complex operator-(Complex lhs, const Complex& rhs) {
+        lhs -= rhs;
+        return lhs;
+    }
 
-    void add(Complex other);
-    void add(Complex *other);
-    Complex addInplace(Complex *other);
+    Complex& operator*=(const Complex& rhs);
+    friend Complex operator*(Complex lhs, const Complex& rhs) {
+        lhs *= rhs;
+        return lhs;
+    }
 
-    void subtract(Complex other);
-    void subtract(Complex *other);
-    Complex subtractInplace(Complex *other);
-
-    void multiply(Complex other);
-    void multiply(Complex *other);
-    Complex multiplyInplace(Complex other);
-    Complex multiplyInplace(Complex *other);
-
-    void square();
-    Complex squareInplace();
+    Complex& operator/=(const Complex& rhs);
+    friend Complex operator/(Complex lhs, const Complex& rhs) {
+        lhs /= rhs;
+        return rhs;
+    }
 
     void squareAdd(Complex other);
-
-    void scale(double scalar);
-    Complex scaleInplace(double scalar);
 
     double magnitude();
     double magnitudeSquared();
 };
-
-Complex addComplex(Complex first, Complex second);
-Complex addComplex(Complex first, Complex *second);
-Complex addComplex(Complex *first, Complex second);
-Complex addComplex(Complex *first, Complex *second);
-
-Complex subtractComplex(Complex first, Complex second);
-Complex subtractComplex(Complex first, Complex *second);
-Complex subtractComplex(Complex *first, Complex second);
-Complex subtractComplex(Complex *first, Complex *second);
-
-Complex scaleComplex(Complex complex, double scalar);
-Complex scaleComplex(Complex *complex, double scalar);
 
 #endif

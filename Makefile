@@ -12,8 +12,8 @@ TREE := $(sort $(patsubst %/,%,$(dir $(OBJS))))
 CPPFLAGS     = -MMD -MP -MF $(@:$(OBJDIR)/%.o=$(DEPDIR)/%.d)
 CXXWARNFLAGS = -Wall -Wextra -Wpedantic -Wshadow -Wnon-virtual-dtor -Wold-style-cast -Wcast-align -Wzero-as-null-pointer-constant -Wunused -Woverloaded-virtual -Wformat=2 -Werror=vla -Wmisleading-indentation -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wnull-dereference
 # add -march=native after -O3 if you wish to optimise the code for your machine. may not run on other machines
-CXXFLAGS    := -std=c++20 -O3 $(CXXWARNFLAGS)
-LINKFLAGS    = -lSDL3
+CXXFLAGS    := -std=c++23 -O3 $(CXXWARNFLAGS)
+LINKFLAGS    = -lSDL3 -lSDL3_image
 
 .PHONY: build test clean build-native
 
@@ -21,8 +21,9 @@ $(TARGET): $(OBJS)
 	g++ -o $(BINDIR)/$@ $^ $(CXXFLAGS) $(LINKFLAGS)
 
 build: $(TARGET)
+	cp -r assets/ bin/
 
-test: $(TARGET)
+test: build
 	cd  $(BINDIR); ./$(TARGET); cd ..
 
 .SECONDEXPANSION:

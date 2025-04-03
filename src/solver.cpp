@@ -1,4 +1,4 @@
-#include "grid.hpp"
+#include "solver.hpp"
 
 #include <chrono>
 #include <cmath>
@@ -6,36 +6,40 @@
 #include <iostream>
 #include <mutex>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include "complex.hpp"
+#include "grid2d.hpp"
 #include "workqueue.hpp"
 
-MandelbrotGrid::MandelbrotGrid() {
+Solver::Solver() {
     m_iterationCount = 0;
     m_iterationMaximum = 8192;
-    m_escapeRadius = 2.0;
+    m_escapeRadius = 256.0;
     m_width = 1;
     m_height = 1;
     aspectRatio = static_cast<double>(m_width) / static_cast<double>(m_height);
-    m_viewCenter.set(0.0, 0.0);
+    m_viewCenter = {-0.5, 0.0};
     m_viewScale = 1.0;
+
+    m_currentFractal = true;
+    m_fractalConstant = {0.0, 0.0};
 }
 
-void MandelbrotGrid::initializeGrid(int width, int height,
-                                    double viewCenterReal,
-                                    double viewCenterImag, double viewScale) {
+void Solver::initializeGrid(int width, int height, double viewCenterReal,
+                            double viewCenterImag, double viewScale) {
     {
         std::lock_guard<std::mutex> lock(calculationMutex);
 
-        m_viewCenter.set(viewCenterReal, viewCenterImag);
+        m_viewCenter = {viewCenterReal, viewCenterImag};
         m_viewScale = viewScale;
     }
 
     resizeGrid(width, height);
 }
 
-void MandelbrotGrid::resizeGrid(int width, int height) {
+void Solver::resizeGrid(int width, int height) {
     std::lock_guard<std::mutex> lock(calculationMutex);
 
     m_width = width;
@@ -46,17 +50,25 @@ void MandelbrotGrid::resizeGrid(int width, int height) {
     resetGrid();
 }
 
-void MandelbrotGrid::resetGrid() {
+void Solver::resetGrid() {
     workQueue.abortIteration();
 
-    m_grid.resize(m_width * m_height);
-    m_grid.assign(m_width * m_height, Complex(0.0, 0.0));
+    m_grid.resize(m_width, m_height);
+    if (m_currentFractal) {
+        m_grid.assign(m_width, m_height, m_fractalConstant);
+    } else {
+        for (int y = 0; y < m_height; y++) {
+            for (int x = 0; x < m_width; x++) {
+                m_grid[x, y] = mapToComplex(x, y);
+            }
+        }
+    }
 
-    m_iterationGrid.resize(m_width * m_height);
-    m_iterationGrid.assign(m_width * m_height, 0);
+    m_iterationGrid.resize(m_width, m_height);
+    m_iterationGrid.assign(m_width, m_height, 0);
 
-    m_magnitudeSquaredGrid.resize(m_width * m_height);
-    m_magnitudeSquaredGrid.assign(m_width * m_height, 0.0);
+    m_magnitudeSquaredGrid.resize(m_width, m_height);
+    m_magnitudeSquaredGrid.assign(m_width, m_height, 0.0);
 
     m_escapeCount = 0;
     escapeIterationCounter.resize(m_iterationMaximum);
@@ -65,21 +77,35 @@ void MandelbrotGrid::resetGrid() {
     m_iterationCount = 0;
 }
 
-void MandelbrotGrid::calculationLoop() {
+void Solver::toggleJulia() {
+    std::lock_guard<std::mutex> lock(calculationMutex);
+
+    if (m_currentFractal) { // Switch to julia set.
+        std::cout << "Switching to julia set.\n";
+    } else { // Switch to mandelbrot set.
+        std::cout << "Switching to mandelbrot set.\n";
+    }
+    std::swap(m_viewCenter, m_fractalConstant);
+    m_currentFractal = !m_currentFractal;
+
+    resetGrid();
+}
+
+void Solver::calculationLoop() {
     isRunning = true;
     while (isRunning) {
         iterateGrid();
     }
 }
 
-void MandelbrotGrid::stop() { isRunning = false; }
+void Solver::stop() { isRunning = false; }
 
-int MandelbrotGrid::getMaxIterationCount() { return m_iterationMaximum; }
+int Solver::getMaxIterationCount() { return m_iterationMaximum; }
 
-void MandelbrotGrid::getFrameData(
-    int &iterationCount, int &escapeCount,
-    std::vector<double> &magnitudeSquaredGrid, std::vector<int> &iterationGrid,
-    std::vector<int> &escapeIterationCounterSums) {
+void Solver::getFrameData(int& iterationCount, int& escapeCount,
+                          Grid2d<double>& magnitudeSquaredGrid,
+                          Grid2d<int>& iterationGrid,
+                          std::vector<int>& escapeIterationCounterSums) {
 
     while (m_iterationCount == 0) [[unlikely]] {
     }
@@ -91,7 +117,6 @@ void MandelbrotGrid::getFrameData(
         std::lock_guard<std::mutex> lock(calculationMutex);
 
         if (!workQueue.isAborted()) [[likely]] {
-
             iterationCount = m_iterationCount;
 
             escapeCount = m_escapeCount;
@@ -113,86 +138,79 @@ void MandelbrotGrid::getFrameData(
     }
 }
 
-void MandelbrotGrid::zoomIn(double factor) {
+void Solver::zoomIn(double factor) {
     std::lock_guard<std::mutex> lock(calculationMutex);
     m_viewScale *= factor;
     resetGrid();
     printLocation();
 }
-void MandelbrotGrid::zoomOut(double factor) {
+void Solver::zoomOut(double factor) {
     std::lock_guard<std::mutex> lock(calculationMutex);
     m_viewScale /= factor;
     resetGrid();
     printLocation();
 }
 
-void MandelbrotGrid::zoomOnPixel(int x, int y) {
+void Solver::zoomOnPixel(int x, int y, double factor) {
     std::lock_guard<std::mutex> lock(calculationMutex);
-    m_viewCenter.set(mapToComplex(x, y));
-    m_viewScale *= 2;
+    m_viewCenter = mapToComplex(x, y);
+    m_viewScale *= factor;
     resetGrid();
     printLocation();
 }
 
-void MandelbrotGrid::move(double real, double imag) {
+void Solver::move(double real, double imag) {
     std::lock_guard<std::mutex> lock(calculationMutex);
-    m_viewCenter.add(Complex(real / m_viewScale, imag / m_viewScale));
+    m_viewCenter += Complex(real / m_viewScale, imag / m_viewScale);
     resetGrid();
     printLocation();
 }
 
-void MandelbrotGrid::printLocation() {
+void Solver::printLocation() {
     std::cout << std::setprecision(12);
     std::cout << "(" << m_viewCenter.real << ", " << m_viewCenter.imag << ", "
               << m_viewScale << ")\n";
 }
 
-Complex MandelbrotGrid::mapToComplex(double x, double y) {
+Complex Solver::mapToComplex(double x, double y) {
     x += 0.5;
     y += 0.5;
-    double realRange = (2.0 * m_escapeRadius) / m_viewScale;
+    double realRange = 4.0 / m_viewScale;
     double imaginaryRange = realRange * (static_cast<double>(m_height) /
                                          static_cast<double>(m_width));
-    x *= realRange / static_cast<double>(m_width);
-    y *= imaginaryRange / static_cast<double>(m_height);
+    x *= realRange / m_width;
+    y *= imaginaryRange / m_height;
 
-    x += m_viewCenter.real - (m_escapeRadius / m_viewScale);
-    y += m_viewCenter.imag - (m_escapeRadius / (m_viewScale * aspectRatio));
+    x += m_viewCenter.real - (2.0 / m_viewScale);
+    y += m_viewCenter.imag - (2.0 / (m_viewScale * aspectRatio));
 
     y = 2.0 * m_viewCenter.imag - y;
 
     return Complex(x, y);
 }
 
-void MandelbrotGrid::setValueAt(int x, int y, Complex value) {
-    m_grid[x * m_height + y] = value;
-}
-
-void MandelbrotGrid::incrementIterationGrid(int x, int y) {
-    m_iterationGrid[x * m_height + y] += 1;
-}
-
-void MandelbrotGrid::rowIterator() {
+void Solver::rowIterator() {
     auto [y, width] = workQueue.getTask();
 
     while (y != -1) {
-        // TODO use workQueue's atomic bool to abort before further reads.
         for (int x = 0; x < m_width; x++) {
             if (workQueue.isAborted()) [[unlikely]] {
                 break;
             }
-            if (m_magnitudeSquaredGrid[x * m_height + y] <=
+            if (m_magnitudeSquaredGrid[x, y] <=
                 m_escapeRadius * m_escapeRadius) {
-                m_grid[x * m_height + y].squareAdd(mapToComplex(x, y));
-                m_magnitudeSquaredGrid[x * m_height + y] =
-                    m_grid[x * m_height + y].magnitudeSquared();
-                incrementIterationGrid(x, y);
+                if (m_currentFractal) { // mandelbrot set.
+                    m_grid[x, y].squareAdd(mapToComplex(x, y));
+                } else { // julia set.
+                    m_grid[x, y].squareAdd(m_fractalConstant);
+                }
+                m_magnitudeSquaredGrid[x, y] = m_grid[x, y].magnitudeSquared();
+                m_iterationGrid[x, y]++;
 
-                if (m_magnitudeSquaredGrid[x * m_height + y] >
+                if (m_magnitudeSquaredGrid[x, y] >
                     m_escapeRadius * m_escapeRadius) {
                     m_escapeCount++;
-                    escapeIterationCounter[m_iterationGrid[x * m_height + y] -
-                                           1]++;
+                    escapeIterationCounter[m_iterationGrid[x, y] - 1]++;
                 }
             }
         }
@@ -201,7 +219,7 @@ void MandelbrotGrid::rowIterator() {
     }
 }
 
-void MandelbrotGrid::iterateGrid() {
+void Solver::iterateGrid() {
     if (m_iterationCount < m_iterationMaximum) {
         std::this_thread::sleep_for(std::chrono::nanoseconds(1));
         std::lock_guard<std::mutex> lock(calculationMutex);
@@ -209,17 +227,16 @@ void MandelbrotGrid::iterateGrid() {
         workQueue.setTaskCount(m_height);
         workQueue.setTaskLength(m_width);
 
-        unsigned int threadCount = std::thread::hardware_concurrency();
-        std::vector<std::jthread> threads;
-
         {
+            unsigned int threadCount = std::thread::hardware_concurrency();
+            std::vector<std::jthread> threads;
+
             for (unsigned int i = 0u; i < threadCount; i++) {
-                threads.push_back(
-                    std::jthread(&MandelbrotGrid::rowIterator, this));
+                threads.push_back(std::jthread(&Solver::rowIterator, this));
             }
         }
 
-        if (!workQueue.isAborted()) {
+        if (!workQueue.isAborted()) [[likely]] {
             m_iterationCount++;
 
             if (m_iterationCount >= m_iterationMaximum) {
