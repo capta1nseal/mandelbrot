@@ -2,6 +2,7 @@
 Just a little hobby project in fractal rendering.
 Features a full mandelbrot set and julia set renderer with some nice graphics.
 Rendered on the CPU. A long-term goal would be to move compute to the GPU.
+Here's a shadertoy I made running pretty much the same computations on the GPU: [Fractal Shadertoy](https://www.shadertoy.com/view/33lGDX)
 
 ## Installation
 - Requires an installation of SDL3 on your include path, or provide your own and link in Makefile.
@@ -12,7 +13,7 @@ Rendered on the CPU. A long-term goal would be to move compute to the GPU.
 - Window can be resized, toggle fullscreen with F11.
 - Move around with WASD keys.
 - Zoom in/out with up/down arrow keys.
-- Toggle between mandelbrot and julia sets with J.
+- Toggle between mandelbrot and julia sets with spacebar.
 - Increase/decrease animation speed with right/left arrow keys.
 - Zoom in and centre on click by left-clicking.
     - Resizing or zooming may result in needing to wait a moment until enough iterations are recalculated to be able to see anything.

@@ -16,7 +16,7 @@
 Solver::Solver() {
     m_iterationCount = 0;
     m_iterationMaximum = 8192;
-    m_escapeRadius = 2.0;
+    m_escapeRadius = 256.0;
     m_width = 1;
     m_height = 1;
     aspectRatio = static_cast<double>(m_width) / static_cast<double>(m_height);
@@ -175,14 +175,14 @@ void Solver::printLocation() {
 Complex Solver::mapToComplex(double x, double y) {
     x += 0.5;
     y += 0.5;
-    double realRange = (2.0 * m_escapeRadius) / m_viewScale;
+    double realRange = 4.0 / m_viewScale;
     double imaginaryRange = realRange * (static_cast<double>(m_height) /
                                          static_cast<double>(m_width));
     x *= realRange / m_width;
     y *= imaginaryRange / m_height;
 
-    x += m_viewCenter.real - (m_escapeRadius / m_viewScale);
-    y += m_viewCenter.imag - (m_escapeRadius / (m_viewScale * aspectRatio));
+    x += m_viewCenter.real - (2.0 / m_viewScale);
+    y += m_viewCenter.imag - (2.0 / (m_viewScale * aspectRatio));
 
     y = 2.0 * m_viewCenter.imag - y;
 

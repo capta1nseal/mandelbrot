@@ -170,7 +170,7 @@ void MandelbrotApplication::handleEvents() {
                 }
                 isFullscreen = !isFullscreen;
                 break;
-            case SDL_SCANCODE_J:
+            case SDL_SCANCODE_SPACE:
                 solver.toggleJulia();
                 initializeRenderTexture();
                 break;
@@ -289,7 +289,7 @@ void MandelbrotApplication::draw() {
                 escapeIterationCount =
                     (iterationGrid[x, y] -
                      log2(log2(magnitudeSquaredGrid[x, y]))) +
-                    1;
+                    5;
                 // get Lerped summed histogram for continuous histogram shading
                 histogramFactor = smoothEscapeIterationCounterSum(
                                       escapeIterationCount - 1.0) /
